@@ -77,40 +77,40 @@ export class Evaluator {
 
     static applyUnaryOp(op: UnaryOperator, operand: Value): Value {
         switch (op) {
-            case '!':
+            case UnaryOperator['!']:
                 return !operand;
-            case '-':
+            case UnaryOperator['-']:
                 return -operand;
         }
     }
 
     static applyBinaryOp(op: BinaryOperator, lhs: Value, rhs: Value): Value {
         switch (op) {
-            case '+':
+            case BinaryOperator['+']:
                 return +lhs + +rhs;
-            case '-':
+            case BinaryOperator['-']:
                 return +lhs - +rhs;
-            case '*':
+            case BinaryOperator['*']:
                 return +lhs * +rhs;
-            case '/':
+            case BinaryOperator['/']:
                 return +lhs / +rhs;
-            case '%':
+            case BinaryOperator['%']:
                 return +lhs % +rhs;
-            case '>':
+            case BinaryOperator['>']:
                 return lhs > rhs;
-            case '<':
+            case BinaryOperator['<']:
                 return lhs < rhs;
-            case '<=':
+            case BinaryOperator['<=']:
                 return lhs <= rhs;
-            case '>=':
+            case BinaryOperator['>=']:
                 return lhs >= rhs;
-            case '==':
+            case BinaryOperator['==']:
                 return lhs == rhs;
-            case '!=':
+            case BinaryOperator['!=']:
                 return lhs != rhs;
-            case '===':
+            case BinaryOperator['===']:
                 return lhs === rhs;
-            case '!==':
+            case BinaryOperator['!==']:
                 return lhs !== rhs;
         }
     }

@@ -24,7 +24,21 @@ interface IfThenElse {
     source: 'statement' | 'expression';
 }
 
-export type BinaryOperator = '+' | '-' | '*' | '/' | '%' | '>' | '<' | '<=' | '>=' | '==' | '!=' | '===' | '!==';
+export enum BinaryOperator {
+    '+',
+    '-',
+    '*',
+    '/',
+    '%',
+    '>',
+    '<',
+    '<=',
+    '>=',
+    '==',
+    '!=',
+    '===',
+    '!==',
+}
 
 interface BinaryOp {
     kind: 'BinaryOp';
@@ -33,7 +47,10 @@ interface BinaryOp {
     rhs: Expr;
 }
 
-export type UnaryOperator = '!' | '-';
+export enum UnaryOperator {
+    '!',
+    '-',
+}
 
 interface UnaryOp {
     kind: 'UnaryOp';
@@ -60,9 +77,9 @@ export function exprToString(expr: Expr): string {
         case 'Variable':
             return expr.name;
         case 'UnaryOp':
-            return `${expr.op}${exprToString(expr.operand)}`;
+            return `${UnaryOperator[expr.op]}${exprToString(expr.operand)}`;
         case 'BinaryOp':
-            return `(${exprToString(expr.lhs)} ${expr.op} ${exprToString(expr.rhs)})`;
+            return `(${exprToString(expr.lhs)} ${BinaryOperator[expr.op]} ${exprToString(expr.rhs)})`;
         case 'IfThenElse':
             return `(${exprToString(expr.condition)} ? ${exprToString(expr.thenCase)} : ${exprToString(expr.elseCase)})`;
         case 'FunctionCall': {
