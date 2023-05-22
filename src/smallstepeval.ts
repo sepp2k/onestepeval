@@ -1,4 +1,4 @@
-import { Expr, Input, FunctionDef, UnaryOperator, BinaryOperator, Value } from './core';
+import { Expr, Input, FunctionDef, UnaryOperator, BinaryOperator, Value, exprToString } from './core';
 
 interface ExprRef {
     next: ExprRef | undefined;
@@ -210,15 +210,17 @@ export class Evaluator {
         }
     }
 
-    eval(callback: (expr: Expr) => void) {
+    eval(): string[] {
+        const result = [];
         while (this.root.kind !== 'Const') {
-            callback(this.root);
+            result.push(exprToString(this.root));
             this.stepOnce();
         }
-        callback(this.root);
+        result.push(exprToString(this.root));
+        return result;
     }
 }
 
-export function evalAllSteps(input: Input, callback: (expr: Expr) => void) {
-    return new Evaluator(input).eval(callback);
+export function evalAllSteps(input: Input) {
+    return new Evaluator(input).eval();
 }
