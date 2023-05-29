@@ -1,16 +1,40 @@
-import { evalAllSteps } from './smallstepeval';
+import { evalStepByStep } from './smallstepeval';
 import { parseExpression } from './jsparser';
+import { Input, exprToString } from './core';
 
-test('constant expression', () => {
-    expect(evalAllSteps({ expression: parseExpression('42'), functions: new Map() })).toStrictEqual(['42']);
+async function evalAllSteps(input: Input): Promise<string[]> {
+    const result: string[] = [];
+    await evalStepByStep(input, async (expr) => {
+        result.push(exprToString(expr));
+    });
+    return result;
+}
+
+async function evalNSteps(n: number, input: Input): Promise<string[]> {
+    const result: string[] = [];
+    let count = 0;
+    try {
+        await evalStepByStep(input, async (expr) => {
+            result.push(exprToString(expr));
+            count++;
+            if (count >= n) throw 'break out of iteration';
+        });
+    } catch (err) {
+        if (err !== 'break out of iteration') throw err;
+    }
+    return result;
+}
+
+test('constant expression', async () => {
+    expect(await evalAllSteps({ expression: parseExpression('42'), functions: new Map() })).toStrictEqual(['42']);
 });
 
-test('simple addition', () => {
-    expect(evalAllSteps({ expression: parseExpression('42 + 23'), functions: new Map() })).toStrictEqual(['(42 + 23)', '65']);
+test('simple addition', async () => {
+    expect(await evalAllSteps({ expression: parseExpression('42 + 23'), functions: new Map() })).toStrictEqual(['(42 + 23)', '65']);
 });
 
-test('more complex arithmetic expression', () => {
-    expect(evalAllSteps({ expression: parseExpression('1 * (2 + 3) / 4 - 5 === 6 % 7'), functions: new Map() })).toStrictEqual([
+test('more complex arithmetic expression', async () => {
+    expect(await evalAllSteps({ expression: parseExpression('1 * (2 + 3) / 4 - 5 === 6 % 7'), functions: new Map() })).toStrictEqual([
         '((((1 * (2 + 3)) / 4) - 5) === (6 % 7))',
         '((((1 * 5) / 4) - 5) === (6 % 7))',
         '(((5 / 4) - 5) === (6 % 7))',
@@ -21,8 +45,8 @@ test('more complex arithmetic expression', () => {
     ]);
 });
 
-test('negative numbers', () => {
-    expect(evalAllSteps({ expression: parseExpression('-42 > -(23+13)'), functions: new Map() })).toStrictEqual([
+test('negative numbers', async () => {
+    expect(await evalAllSteps({ expression: parseExpression('-42 > -(23+13)'), functions: new Map() })).toStrictEqual([
         '(-42 > -(23 + 13))',
         '(-42 > -(23 + 13))',
         '(-42 > -36)',
@@ -31,14 +55,14 @@ test('negative numbers', () => {
     ]);
 });
 
-test('boolean operations', () => {
+test('boolean operations', async () => {
     const functions = new Map([
         ['and', { parameters: ['a', 'b'], returnValue: parseExpression('a ? b : a') }],
         ['or', { parameters: ['a', 'b'], returnValue: parseExpression('a ? a : b') }],
         ['not', { parameters: ['x'], returnValue: parseExpression('!x') }],
     ]);
     expect(
-        evalAllSteps({ expression: parseExpression('!and(or(not(1 < 2), !(3 >= 4)), or(!(5 == 6), and(!(7 != 8), !(9 !== 10))))'), functions })
+        await evalAllSteps({ expression: parseExpression('!and(or(not(1 < 2), !(3 >= 4)), or(!(5 == 6), and(!(7 != 8), !(9 !== 10))))'), functions })
     ).toStrictEqual([
         '!and(or(not((1 < 2)), !(3 >= 4)), or(!(5 == 6), and(!(7 != 8), !(9 !== 10))))',
         '!and(or(not(true), !(3 >= 4)), or(!(5 == 6), and(!(7 != 8), !(9 !== 10))))',
@@ -64,9 +88,9 @@ test('boolean operations', () => {
     ]);
 });
 
-test('factorial function', () => {
+test('factorial function', async () => {
     const functions = new Map([['factorial', { parameters: ['n'], returnValue: parseExpression('n <= 0 ? 1 : n * factorial(n-1)') }]]);
-    expect(evalAllSteps({ expression: parseExpression('factorial(2)'), functions })).toStrictEqual([
+    expect(await evalAllSteps({ expression: parseExpression('factorial(2)'), functions })).toStrictEqual([
         'factorial(2)',
         '((2 <= 0) ? 1 : (2 * factorial((2 - 1))))',
         '(false ? 1 : (2 * factorial((2 - 1))))',
@@ -81,5 +105,21 @@ test('factorial function', () => {
         '(2 * (1 * 1))',
         '(2 * 1)',
         '2',
+    ]);
+});
+
+test('infinite recursion', async () => {
+    const functions = new Map([['infty', { parameters: ['i'], returnValue: parseExpression('infty(i+1)') }]]);
+    expect(await evalNSteps(10, { expression: parseExpression('infty(0)'), functions })).toStrictEqual([
+        'infty(0)',
+        'infty((0 + 1))',
+        'infty(1)',
+        'infty((1 + 1))',
+        'infty(2)',
+        'infty((2 + 1))',
+        'infty(3)',
+        'infty((3 + 1))',
+        'infty(4)',
+        'infty((4 + 1))',
     ]);
 });

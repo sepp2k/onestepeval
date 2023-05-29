@@ -1,9 +1,11 @@
 {
     "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
     "parser": "@typescript-eslint/parser",
+    "parserOptions": { "project": "./tsconfig.json" },
     "plugins": ["@typescript-eslint"],
     "root": true,
     "rules": {
-        "func-style": ["warn", "declaration"]
+        "func-style": ["warn", "declaration"],
+        "@typescript-eslint/no-floating-promises": ["error"]
     }
 }
